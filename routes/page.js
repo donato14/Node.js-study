@@ -1,5 +1,5 @@
 const express = require('express');
-const { Post, User } = require('../models');
+const { Post, User, Hashtage } = require('../models');
 const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 
 const router = express.Router();
@@ -36,6 +36,28 @@ router.get('/', async (req, res, next) => {
   } catch (err) {
     console.error(err);
     next(err);
+  }
+});
+
+router.get('/hashtag', async (req, res, next) => {
+  const query = req.query.Hashtage;
+  if (!query) {
+    return res.redirect('/');
+  }
+  try {
+    const hashtag = await Hashtage.findOne({ where: { title: query } });
+    let posts = [];
+    if (hashtag) {
+      posts = await hashtag.getPosts({ include: [{ model: User}] });
+    }
+    
+    return res.render('main', {
+      title: `${query} | NodeBird`,
+      twits: posts,
+    });
+  } catch (error) {
+    console.error(error);
+    return next(error);
   }
 });
 
